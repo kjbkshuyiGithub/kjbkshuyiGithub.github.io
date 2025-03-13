@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minecraft服务器信息</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4CAF50;
+            --secondary: #2E7D32;
+            --dark: #1B1B1B;
+            --light: #F5F5F5;
+            --accent: #FFC107;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--dark);
+            color: var(--light);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background-color: rgba(30, 30, 30, 0.8);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            transform: translateY(50px);
+            opacity: 0;
+            animation: fadeIn 1s forwards;
+        }
+        
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            position: relative;
+            display: inline-block;
+        }
+        
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 4px;
+            background-color: var(--accent);
+            animation: lineGrow 1.5s forwards 0.5s;
+        }
+        
+        @keyframes lineGrow {
+            to {
+                width: 80%;
+            }
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: #AAA;
+            margin-bottom: 2rem;
+        }
+        
+        .server-card {
+            background: linear-gradient(145deg, #222, #333);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .server-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+        }
+        
+        .server-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+        }
+        
+        .server-name {
+            font-size: 1.8rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .server-name i {
+            margin-right: 10px;
+            color: var(--accent);
+        }
+        
+        .server-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        
+        .info-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .info-item i {
+            width: 30px;
+            color: var(--accent);
+            margin-right: 10px;
+            text-align: center;
+        }
+        
+        .copy-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 0.5rem 1rem;
+            margin-left: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+        }
+        
+        .copy-btn:hover {
+            background-color: var(--secondary);
+        }
+        
+        .copy-btn i {
+            margin-right: 5px;
+        }
+        
+        .status {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-left: 1rem;
+        }
+        
+        .online {
+            background-color: rgba(76, 175, 80, 0.2);
+            color: #4CAF50;
+            border: 1px solid #4CAF50;
+        }
+        
+        .offline {
+            background-color: rgba(244, 67, 54, 0.2);
+            color: #F44336;
+            border: 1px solid #F44336;
+        }
+        
+        .player-count {
+            font-size: 1.1rem;
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .player-count i {
+            color: var(--accent);
+            margin-right: 10px;
+        }
+        
+        .progress-bar {
+            height: 10px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            overflow: hidden;
+            flex-grow: 1;
+            margin: 0 1rem;
+        }
+        
+        .progress {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            width: 0;
+            transition: width 1s ease-in-out;
+        }
+        
+        .server-description {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            line-height: 1.6;
+        }
+        
+        .version-tag {
+            display: inline-block;
+            background-color: rgba(76, 175, 80, 0.2);
+            color: var(--primary);
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            margin-left: 1rem;
+            border: 1px solid var(--primary);
+        }
+        
+        .join-btn {
+            display: block;
+            width: 100%;
+            padding: 1rem;
+            margin-top: 2rem;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .join-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.7s;
+        }
+        
+        .join-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+        }
+        
+        .join-btn:hover::before {
+            left: 100%;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: -300px;
+            background-color: var(--primary);
+            color: white;
+            padding: 1rem;
+            border-radius: 5px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transition: right 0.5s;
+            z-index: 1000;
+        }
+        
+        .notification.show {
+            right: 20px;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 2rem;
+            padding: 1rem;
+            color: #777;
+            font-size: 0.9rem;
+        }
+        
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 1.5rem;
+                width: 95%;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .server-info {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* 添加一些Minecraft风格的元素 */
+        .minecraft-block {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background-size: cover;
+            opacity: 0.2;
+            z-index: -1;
+        }
+        
+        .grass {
+            background-image: url('https://static.wikia.nocookie.net/minecraft_gamepedia/images/7/7e/Grass_Block_JE7.png');
+        }
+        
+        .stone {
+            background-image: url('https://static.wikia.nocookie.net/minecraft_gamepedia/images/c/c1/Stone_JE4.png');
+        }
+        
+        .diamond {
+            background-image: url('https://static.wikia.nocookie.net/minecraft_gamepedia/images/c/c8/Diamond_Ore_JE5.png');
+        }
+    </style>
+</head>
+<body>
+    <div class="particles" id="particles"></div>
+    
+    <div class="container">
+        <header>
+            <h1>Minecraft服务器信息</h1>
+            <p class="subtitle">加入我们的世界，开始你的冒险</p>
+        </header>
+        
+        <div class="server-card" id="main-server">
+            <h2 class="server-name">
+                <i class="fas fa-server"></i> 主服务器
+                <span class="status" id="server-status">检查中...</span>
+                <span class="version-tag">1.20.4</span>
+            </h2>
+            
+            <div class="server-info">
+                <div class="info-item">
+                    <i class="fas fa-network-wired"></i>
+                    <span>服务器IP: </span>
+                    <strong id="server-ip">8fb74d2a-c7ab-8b1a-e414-31870fd3df78.ofalias.com:36324</strong>
+                    <button class="copy-btn" onclick="copyToClipboard('play.example.com')">
+                        <i class="fas fa-copy"></i> 复制
+                    </button>
+                </div>
+                
+                <div class="info-item">
+                    <i class="fas fa-globe"></i>
+                    <span>端口: </span>
+                    <strong>25565</strong> (默认)
+                </div>
+            </div>
+            
+            <div class="player-count">
+                <div>
+                    <i class="fas fa-users"></i>
+                    <span id="online-players">0</span> / <span id="max-players">100</span> 玩家在线
+                </div>
+                <div class="progress-bar">
+                    <div class="progress" id="player-progress"></div>
+                </div>
+                <div id="player-percentage">0%</div>
+            </div>
+            
+            <div class="server-description">
+                <p>这是一个生电服务器，拥有丰富的游戏内容和活跃的社区。</p>
+            </div>
+            
+            <button class="join-btn" onclick="copyToClipboard('play.example.com')">
+                <i class="fas fa-sign-in-alt"></i> 加入服务器
+            </button>
+        </div>
+        
+        <div class="server-card">
+            <h2 class="server-name">
+                <i class="fas fa-gamepad"></i> 备用服务器
+                <span class="status online">在线</span>
+                <span class="version-tag">1.20.4</span>
+            </h2>
+            
+            <div class="server-info">
+                <div class="info-item">
+                    <i class="fas fa-network-wired"></i>
+                    <span>服务器IP: </span>
+                    <strong>nmg.frp.one:17994</strong>
+                    <button class="copy-btn" onclick="copyToClipboard('minigames.example.com')">
+                        <i class="fas fa-copy"></i> 复制
+                    </button>
+                </div>
+                
+                <div class="info-item">
+                    <i class="fas fa-globe"></i>
+                    <span>端口: </span>
+                    <strong>25565</strong> (默认)
+                </div>
+            </div>
+            
+            <div class="player-count">
+                <div>
+                    <i class="fas fa-users"></i>
+                    <span>0</span> / <span>150</span> 玩家在线
+                </div>
+                <div class="progress-bar">
+                    <div class="progress" style="width: 28%"></div>
+                </div>
+                <div>28%</div>
+            </div>
+            
+            <div class="server-description">
+                <p>此服务器是备用服务器，如果主服务器无法连接，请尝试连接此服务器</p>
+            </div>
+            
+            <button class="join-btn" onclick="copyToClipboard('minigames.example.com')">
+                <i class="fas fa-sign-in-alt"></i> 加入服务器
+            </button>
+        </div>
+    </div>
+    
+    <div class="notification" id="notification">已复制服务器IP到剪贴板！</div>
+    
+    <footer>
+        <p>© 2023 Minecraft服务器信息 | 本网站与Mojang Studios没有任何关联</p>
+    </footer>
+    
+    <script>
+        // 复制IP到剪贴板
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                const notification = document.getElementById('notification');
+                notification.classList.add('show');
+                
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 3000);
+            });
+        }
+        
+        // 模拟服务器状态检查
+        function checkServerStatus() {
+            // 这里通常会有一个API调用来检查真实的服务器状态
+            // 这里我们只是模拟一个随机结果
+            const isOnline = Math.random() > 0.2; // 80%的概率在线
+            const statusElement = document.getElementById('server-status');
+            
+            if (isOnline) {
+                statusElement.textContent = '在线';
+                statusElement.className = 'status online';
+                
+                // 随机在线玩家数
+                const maxPlayers = 100;
+                const onlinePlayers = Math.floor(Math.random() * maxPlayers);
+                document.getElementById('online-players').textContent = onlinePlayers;
+                document.getElementById('max-players').textContent = maxPlayers;
+                
+                const percentage = Math.floor((onlinePlayers / maxPlayers) * 100);
+                document.getElementById('player-progress').style.width = percentage + '%';
+                document.getElementById('player-percentage').textContent = percentage + '%';
+            } else {
+                statusElement.textContent = '离线';
+                statusElement.className = 'status offline';
+                
+                document.getElementById('online-players').textContent = '0';
+                document.getElementById('player-progress').style.width = '0%';
+                document.getElementById('player-percentage').textContent = '0%';
+            }
+        }
+        
+        // 创建粒子效果
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const numberOfParticles = 20;
+            
+            for (let i = 0; i < numberOfParticles; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('minecraft-block');
+                
+                // 随机选择方块类型
+                const blockTypes = ['grass', 'stone', 'diamond'];
+                const randomType = blockTypes[Math.floor(Math.random() * blockTypes.length)];
+                particle.classList.add(randomType);
+                
+                // 随机位置
+                const posX = Math.random() * 100;
+                const posY = Math.random() * 100;
+                particle.style.left = `${posX}%`;
+                particle.style.top = `${posY}%`;
+                
+                // 随机大小
+                const size = 30 + Math.random() * 40;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                
+                // 随机旋转
+                const rotation = Math.random() * 360;
+                particle.style.transform = `rotate(${rotation}deg)`;
+                
+                // 随机透明度
+                const opacity = 0.05 + Math.random() * 0.1;
+                particle.style.opacity = opacity;
+                
+                particlesContainer.appendChild(particle);
+                
+                // 添加浮动动画
+                animateParticle(particle);
+            }
+        }
+        
+        function animateParticle(particle) {
+            const duration = 15000 + Math.random() * 20000; // 15-35秒
+            const startPosX = parseFloat(particle.style.left);
+            const startPosY = parseFloat(particle.style.top);
+            const targetPosX = startPosX + (Math.random() * 20 - 10);
+            const targetPosY = startPosY + (Math.random() * 20 - 10);
+            
+            let startTime;
+            
+            function animate(currentTime) {
+                if (!startTime) startTime = currentTime;
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                const currentX = startPosX + (targetPosX - startPosX) * progress;
+                const currentY = startPosY + (targetPosY - startPosY) * progress;
+                
+                particle.style.left = `${currentX}%`;
+                particle.style.top = `${currentY}%`;
+                
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    // 重新开始动画，创建无限循环效果
+                    animateParticle(particle);
+                }
+            }
+            
+            requestAnimationFrame(animate);
+        }
+        
+        // 页面加载时执行
+        window.addEventListener('load', () => {
+            checkServerStatus();
+            createParticles();
+            
+            // 每30秒检查一次服务器状态
+            setInterval(checkServerStatus, 30000);
+        });
+    </script>
+</body>
+</html> 
